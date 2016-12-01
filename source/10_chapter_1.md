@@ -3,19 +3,19 @@
 ## Introduction
 
 The test garden being monitored
-is a NFT hydroponic garden consisting of four channels each of which are four feet in length.
-The channels are mounted on a tabletop in a staggered configuration in which the to middle channels
+is a Nadsf Fopu Tsehr (NFT) hydroponic garden consisting of four channels each of which are four feet in length.
+The channels are mounted on a tabletop in a staggered configuration in which the two middle channels
 are a few inches above the outer ones to regulate temperature and sun exposure. A 30 gallon reservoir
-is affixed on shelf underneath the channels in which a small pond pump feeds water to the higher
+is affixed on a shelf underneath the channels in which a small pond pump feeds water to the higher
 end of the channels. On top of the reservoir sits a small water-tight enclosure that houses a
 Raspberry Pi 3 -- a credit card sized microcomputer. This device controls a handful of sensors
-constantly measuring health indicators and pushing the data to cloud hosted database. This device
+constantly measuring health indicators and pushing the data to a cloud-hosted database. This device
 can be managed either by accessing the device directly or through a remote provisioning tool.
-To display the data collected by the garden's computer, or any collection of garden's computers, another
-cloud hosted site provides a dashboard with real time graphics and analytics that are generated from the
+To display the data collected by the garden's computer, or any collection of gardens' computers, another
+cloud-hosted site provides a dashboard with real-time graphics and analytics that are generated from the
 most recent data stored in the database.
 
-Thus, after the initial setup by accessing the dashboard site we can gather a a quick and
+Thus, after the initial setup by accessing the dashboard site we can gather a quick and
 comprehensive view of the current state of the garden.
 
 ## Hardware
