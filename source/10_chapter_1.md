@@ -50,29 +50,37 @@ A small, cheap visible light sensor was added to determine the amount light reac
 
 Angular is a javascript framework developed and maintained by Google that is built on the idea that by extending HTML, web application developers can construct modular, declarative components that fit together to build dynamic web pages. Database operations are largely abstracted and the results of any AJAX calls can be bound to, and thus automatically update, any of the previously constructed, reusable DOM elements. 
 
-[This is a very dense paragraph that calls for illustratuve examples or a figure. What's an example of a reusable DOM element you use that has AJAX call results bound to it, that abstracts away CRUD, and how is it implemented in a declarative way that is modular?]
+[DG: This is a very dense paragraph that calls for illustratuve examples or a figure. What's an example of a reusable DOM element you use that has AJAX call results bound to it, that abstracts away CRUD, and how is it implemented in a declarative way that is modular?]
 
 The web framework space is heavily flooded and also incredibly opinionated. My main criteria were that I wanted a structure that was both pluggable and maintainable, meaning I wanted every file to encapsulate only one module of logic, I needed the act of updating previously stored data to be transparent and fast, and I wanted a framework that was well maintained.
 
 During my research I was immediately confident that Angular would provide a stable base considering the fact that it's backed by Google and has over 50,000 stars on GitHub; however, Angular's directives and two-way data binding are what drove me to ultimately believe Angular would work well within the structure I had devised for Victor.
 
-[OK, I'll bite. What's a directive, and what's two-way binding, and where do you use it?]
+[DG: What's a directive, and what's two-way binding, and where do you use them?]
 
 As I mentioner earlier, Angular puts a lot of emphasis on the ability to extend HTML to create Directives, which are encapsulations of HTML and client-side javascript that allow developers to create and reuse custom elements. This leads to declarative markup, and means that simply by reading the HTML tags you can get a quick idea of what components do. Furthermore, by defining options that can be passed into directives, it's possible to create multiple similar components without an egregious reuse of code.
 
-[OK, now it get it better. This should go in the first paragraph.]
+[DG: OK, now I get it better. This should go in the first paragraph.]
 
 ### REST
 
 Victor is a hierarchically organized project composed of a few small services. 
 
-This isn't clear: (is it your initial design?)
+[DG: This isn't clear: is it your initial design?]
 
 We started at a top-level, front-end service, which, to a user, provides all of the project's functionality. However, in order to view and manipulate data, the dashboard service needs to gather information in a parseable format. Historically, the dashboard and garden might be heavily coupled. As hardware components collected measurements they would write them to a relational or flat file database, which the dashboard would then use to gather and display information. Also, any commands to be executed by user input would likely entail direct access of the data collection process.
 
-This presents [presented?] a few problems. In order to access the data you have to be accessing the machine running the program, know the format of data storage, and have a direct connection to the data that utilizes a retrieval method suitable for that format. Furthermore, if anything breaks or is scheduled to be updated or modified then everything goes down. Lastly, gaining access through the use of any vulnerability present in the application opens the door to any and all other services involved, which means that if you find a client-side vulnerability in the user-facing dashboard then you likely have full access to the data collection process.
+This presents 
 
-This isn't a good thing. [Which "this"?]  Instead we can follow micro-service methodology [What's that? Reference?] and implement a back-end api. In terms of technology, this is simply a database hosted in the cloud with a small bit of marshalling code that can read and write standard HTTP requests. Based on what is received the code either queries or submits data to the database and returns a textual representation of what it did.
+[DG: presented?] 
+
+a few problems. In order to access the data you have to be accessing the machine running the program, know the format of data storage, and have a direct connection to the data that utilizes a retrieval method suitable for that format. Furthermore, if anything breaks or is scheduled to be updated or modified then everything goes down. Lastly, gaining access through the use of any vulnerability present in the application opens the door to any and all other services involved, which means that if you find a client-side vulnerability in the user-facing dashboard then you likely have full access to the data collection process.
+
+This isn't a good thing. 
+
+[DG: What is the antecedent of "this"?]  
+
+Instead we can follow micro-service methodology [What's that? Reference?] and implement a back-end api. In terms of technology, this is simply a database hosted in the cloud with a small bit of marshalling code that can read and write standard HTTP requests. Based on what is received the code either queries or submits data to the database and returns a textual representation of what it did.
 
 This unattached service, however, is incredibly valuable in that it makes our applications much more robust, secure, and accessible. For instance, the data coming from my garden is valuable and should be made available to any number of clients to read. In the future I may want to create different an application that reads data from gardens that exist all over the country and compare their yield based on weather and other health indicators. It could also be the case that I want to create a native application that can send updates straight to my desktop. By creating an API using standard RESTful practices the clients that intend to read in my data don't need any previous knowledge aside from the URL of where it resides to access it. All modern, interconnected devices speak HTTP, meaning clients can be entirely heterogenous.
 
@@ -102,22 +110,42 @@ DevOps is a methodology and framework built around the idea that developers aren
 
 The practice is generally focused on the idea that teams of Software Engineers and teams of information-technology (IT) professionals should not be so inherently separate during the process of building and shipping technology.
 
-Obviously as a single person team this emphasis on communication and cooperation becomes less important, but abstracting and adopting the practice of continually testing, integrating, and deploying keeps code cohesive and allows for much faster development.
+Obviously for a single-person team this emphasis on communication and cooperation becomes less important, but abstracting and adopting the practice of continually testing, integrating, and deploying keeps code cohesive and allows for much faster development.
 
 By building the infrastructure from the ground up we can automate how our projects build, test every single change, and deploy only when nothing breaks. Meaning, we can both spend more time developing than solving infrastructural problems and also develop quickly and iteratively.
 
 One of the major principles of DevOps that I adopted right away is Continuous Integration. By connecting one of the various CI services directly to our repository we can discover real bugs as soon as they're checked in.
 
-A watcher keeps an eye on our repositories looking for a commit. Once it sees one a hook triggers a build. Using a provided build script that we include in our project the service builds the new push and runs your suite of tests. The status of the build can then be seen on the dashboard, emailed to you as a notification, or displayed in the projects README.
+A watcher keeps an eye on my repositories looking for a commit. Once it sees one a hook triggers a build. Using a provided build script that we include in our project the service builds the new push and runs our suite of tests. The status of the build can then be seen on the dashboard, emailed to me as a notification, or displayed in the project's README.
+
+[DG: In most of your exposition, "you" is the user, "I" is the developer. You should keep this consistent.]
 
 Taken one step further, we can then decide that for any given commit that passes our suite of tests we will package and generate a new version of the project and automatically deploy it to providers like Heroku, AWS, and Digital Ocean. This ensures that any pushed change that does not break other functionality can be immediately an continuously deployed.
 
+[DG: It's not clear if you implemented this last paragraph, or if it's hypothetical.]
+
 ## Docker
 
-Every sensor is controlled by a single script. Though most of the scripts share at least some code, I wrote a few utility methods for timing and reporting findings that are imported by nearly every sensor, they each have very separate dependencies. Some require specific hardware-level systems packages, whereas others might only need a tagged version of a Python library hosted on Github. It's expected that every component has a unique set of dependencies and it's assumed that many of these will conflict. Furthermore, the scripts are also separate in their access roles. A single process is expected to be able to communicate outside of my home network, and all of the sensor's programs are expected to be able to communicate amongst each other. Likewise, only a single process, the same program that is able to send messages outside of the home network, should be reachable via the internet. That same program should be able to send messages to the other sensor running scripts.
+Every sensor is controlled by a single script. Though most of the scripts share at least some code - I wrote a few utility methods for timing and reporting findings that are imported by nearly every sensor - they each have very separate dependencies. Some require specific hardware-level systems packages, whereas others might only need a tagged version of a Python library hosted on Github. It's expected that every component has a unique set of dependencies and it's assumed that many of these will conflict. Furthermore, the scripts are also separate in their access roles. A single process is expected to be able to communicate outside of my home network, and all of the sensor's programs are expected to be able to communicate amongst each other. Likewise, only a single process, the same program that is able to send messages outside of the home network, should be reachable via the internet. That same program should be able to send messages to the other sensor-running scripts.
 
-I chose Docker as the primary tool to handle sensor's code deployment, separation, and management. Docker is a technology and framework built around developing, building, and deploying applications inside of software containers. Containers are a virtualization technique in which and application and its dependencies are packaged in isolated processed. Like standard virtual machines, Docker containers ensure that I can customize and specify all of the dependencies at the user level. This solves the dependency collision issues because each container has its own unique and unshared user space. Containers are initialized and provisioned via a scripted Dockerfile, which means that environments are consistent and shareable. Similarly, Docker containers, like the code that they host, work well with version control.
+I chose Docker as the primary tool to handle sensor's code deployment, separation, and management. Docker is a technology and framework built around developing, building, and deploying applications inside of software containers. Containers are a virtualization technique in which an application and its dependencies are packaged in isolated processes.
 
-However, unlike virtual machines, containers are very light weight. Once built, a process that generally takes a few minutes depending on internet speed, a container generally starts within seconds. Whereas, each virtual machine is a full operating system with both memory management and virtual devices, Docker containers attempt to save space and resources by sharing a kernel and systems level libraries. This cuts overhead significantly, but decreases the true separation. Containers don't have a full systems level separation like virtual machines, which leaves them somewhat susceptible to breakout attacks. However, Docker containers by default are comfortably secure, and with proper configuration -- namely, not running available processes as root -- the risk of containers is much, much lower than the risk of stand alone processes.
+Like standard virtual machines, Docker containers ensure that I can customize and specify all of the dependencies at the user level. This solves the dependency collision issues because each container has its own unique and unshared user space. Containers are initialized and provisioned via a scripted Dockerfile, which means that environments are consistent and shareable. 
 
-Beyond the security and isolation benefits, containers make the victor framework incredibly scalable. Adding a sensor to the deployment takes three steps -- two of which can be largely automated. The first step is to write the code to interface with the sensor. The file can reside anywhere, but the organization is standardized by storing the file in a directory named after the parameter it Measures. To run in it's own separate container the sensor's code needs a defined Dockerfile. The Dockerfiles used in this project are very similar, so much of the declaration can be reused. Dependencies unique to the sensor's code need to be defined. Lastly, an entry is added to the a DockerCompose YAML file. A DockerCompose file is declared for each deployment. Each machine can host a different configuration of sensors. To keep builds customizable the DockerCompose file defines build instructions, runtime parameters, and names for each sensor container to be run on any given machine. Once defined, start up on any give deployment is as simple as docker-compose up. The configuration in the compose file handles all networking, storage, and environment management.
+[DG: What do "environments", "consistent", and "sharable" mean, and how does all this follow from the use of a scripted Dockerfile?]
+
+Similarly, Docker containers, like the code that they host, work well with version control.
+
+However, unlike virtual machines, containers are very lightweight. The build process generally takes a few minutes depending on internet speed. Once built, a container generally starts within seconds. A virtual machine is a full operating system with both memory management and virtual devices. In contrast, Docker containers attempt to save space and resources by sharing a kernel and systems level libraries. This cuts overhead significantly, but decreases the true separation. Containers don't have a full systems level separation like virtual machines, which leaves them somewhat susceptible to breakout attacks. 
+
+[DG: what's a breakout attack?]
+
+However, Docker containers by default are comfortably secure, and with proper configuration -- namely, not running available processes as root -- the risk of 
+
+[DG: beakout attacks in]
+
+containers is much, much lower than in stand-alone processes.
+
+[DG: much, much? Why is it lower at all?]
+
+Beyond the security and isolation benefits, containers make the Victor framework scalable. Adding a sensor to the deployment takes three steps -- two of which can be largely automated. The first step is the manual one: to write the code to interface with the sensor. The file containing the code can reside anywhere, but I have standardized the organization by storing the file in a directory named after the parameter measured by the sensor. To run in its own separate container the sensor's code needs a defined Dockerfile. The Dockerfiles used in this project are very similar and much of the declaration can be reused. Dependencies unique to the sensor's code need to be defined. Lastly, an entry is added to the DockerCompose YAML file. A DockerCompose file is declared for each deployment. Each machine can host a different configuration of sensors. To keep builds customizable the DockerCompose file defines build instructions, runtime parameters, and names for each sensor container to be run on any given machine. Once defined, start up on any give deployment is as simple as docker-compose up. The configuration in the compose file handles all networking, storage, and environment management.
