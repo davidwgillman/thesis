@@ -18,32 +18,42 @@ The three services that Victor is comprised of are each built with very differen
 
 The garden's computers live in a self-contained subnet. A firewall sits at the entry point of the network and allows only properly formed messages through
 
-A valid request from outside of the network only ever comes from the API, however, because the API is built on a serverless architecture requests will likely never come from the same IP address. Amazon Lambda does not have a set list of addresses that it uses. Amazon, as a organization, owns a publishes a list of their IP addresses, but this list is liable to change at any point in time. For these reasons there is not a reliable way to implement a white list protection, where messages would immediately be denied if they were not included in the list.
+A valid request from outside of the network only ever comes from the API. However, because the API is built on Amazon's "serverless architecture" requests will likely never come from the same IP address. Amazon Lambda does not have a set list of addresses that it uses. Amazon publishes a list of their IP addresses, but this list is liable to change at any point in time. For these reasons there is not a reliable way to implement a white list protection, where messages would immediately be denied if they were not included in the list.
 
 Instead, all incoming requests are expected to be signed by the API Gateway that sits at the front of the API service.
 To sign a request, the Gateway first forms the request. Then it generates a string, the concatenation of the name of the hash algorithm, the request date, a credential scope string, and the request in question, to use as input for a cryptographic hash function. The credential scope string itself is a concatenation of date, region, and service information. The signature is the created using this string and a secret derived key created using a series of hash-based message authentication codes.
 
-This signature is then verified on the Garden's end. Regardless of a valid signature, the request is still treated as potentially dangerous.
+This signature is then verified on the Garden's end. Whether or not it has a valid signature, the request is still treated as potentially dangerous.
 
 For this reason there is an expectation of trust between garden devices. Messages sent among internal entities have an assumed integrity, but the construction and format of the messages are still standardized. Messages to the gardener container are trusted if they are signed by the API.
 
-The API trusts messages sent by both the gardener container and authenticated users. Messages sent from the gardener are standardized and must be of the expected format. A request from the garden must also contain a secret API key that matches the one defined for the respective API's endpoint. Messages from the front end are trusted if the can pass the OAuth authentication check. After a user goes through authenticating through either Facebook or Google, they're give an access key which be passed with every request. Changes to the API are pushed only by a authenticated user with the proper role-based access.
+[DG: How is this last sentence different from the previous one?]
 
-The front-end puts it's trust in the API to pass properly formed and fully vetted data. Changes to the front-end are propagated through Github.
+The API trusts messages sent by both the gardener container and authenticated users. Messages sent from the gardener are standardized and must be of the expected format. A request from the garden must also contain a secret API key that matches the one defined for the API's endpoint. Messages from the front end are trusted if they can pass the OAuth authentication check. After a user goes through authenticating through either Facebook or Google, they're given an access key which be passed with every request. Changes to the API are pushed only by a authenticated user with the proper role-based access.
+
+The front end puts its trust in the API to pass properly formed and fully vetted data. Changes to the front end are propagated through Github.
+
+[DG: Have you defined "front end"? "front-end" is an adjective.]
 
 ### Data Flows and Entry Points
 
 The Gardener container hosted on one of the garden machines sends newly gathered measurements and receives commands from the API. No other data is expected to transfer during normal operation. However, in the case of management and deployment, the garden machines expect remote access by a credentialed admin user.
 
-The garden thus expects connections via port 80 and port 443 for outgoing HTTP and incoming HTTPS requests respectively as well as port 22 for remote deployment via docker-compose and management over SSH. These only constitute the ports open to receive messages externally. Internally containers communicate over port 8000.
+The garden thus expects connections via port 80 and port 443 for outgoing HTTP and incoming HTTPS requests respectively as well as port 22 for remote deployment via docker-compose and management over SSH. These constitute the only ports open to receive messages externally. Internally containers communicate over port 8000.
 
 The API sends and receives requests to the garden. All data transferred is textual and represented through a standardized JSON-based format. Deployment of new developments and changes is handled via Serverless using the AWS CLI or through the Amazon Web Services management portal.
 
-The API expects requests over both port 80 and 443 for HTTP and SSL. Standard HTTP is used for most requests to the Amazon API gateway. Creation and consumption of data is both non-confidential and not especially vulnerable to any sort of sniffing. The use of HTTPS when authenticating and performing authenticated requests, like deletion or configuration, is crucial. In this case the use of HTTPS prevents and attacker from gaining unauthorized access to credentialed actions by protecting OAuth tokens used to authorize such actions.
+[DG: "Serverless"? "CLI"?]
 
-The front-end sends requests and receives data from the API. Any message that the user wishes to be received by the garden needs to be accepted by the API and forwarded appropriately.
+The API expects requests over both port 80 and 443 for HTTP and HTTPS. Standard HTTP is used for most requests to the Amazon API gateway. Creation and consumption of data is both non-confidential and not especially vulnerable to any sort of sniffing. The use of HTTPS when authenticating and performing authenticated requests, like deletion or configuration, is crucial. In this case the use of HTTPS prevents and attacker from gaining unauthorized access to credentialed actions by protecting OAuth tokens used to authorize such actions.
+
+[DG: Why is creation not vulnerable, if you don't want fake data entered?]
+
+The front end sends requests and receives data from the API. Any message that the user wishes to be received by the garden needs to be accepted by the API and forwarded appropriately.
 
 The front-end expects requests over both port 80 and 443 for HTTP and SSL strictly because that is what is made available by GitHub Pages. Ideally, the service would default to HTTPS, but GitHub Pages is free, and messages can still be sent and received in a protected way.
+
+[DG: What is HTTPS and why is it ideal?]
 
 ### Threats
 
@@ -57,21 +67,25 @@ Likewise, they could bypass the application and authentication entirely and send
 
 For any of the services, a user could attempt to forcefully break authentication. Gaining access to the API administrator would allow the attacker to create endpoints to either the front-end or garden that would appear totally valid to the other services. Bypassing SSH authentication to the garden would give an attacker direct access to the API key and faux integrity needed to craft data creation calls deemed acceptable by the API. Similarly, bypassing OAuth authentication on the front-end allows an attacker to modify any and all data as well as send commands through the API to the garden.
 
-Considering availability, there are two points at which the attacker could hinder the services availability, which are the channels of communication between the API and the other two services. Disruption of communication between the API and the garden has two compromising implications. First, the user no longer has access to the most recent data because the garden cannot send messages to the API. The messages will be sent once the connection is resumed, but the latency can be an issue. Secondly, any configuration and control that needs to be sent to the garden won't make it. Both of these issues can severe in time-sensitive applications. The second channel, between the API and front-end, creates similar, but slightly different issues. In this case the user wont be able to view any data through the application despite the fact that the data would likely be complete and recent. The user will also be unable to send messages to the garden, but in this case they'll have little indication of success or failure.
+Considering availability, there are two points at which the attacker could hinder the service's availability, which are the channels of communication between the API and the other two services. Disruption of communication between the API and the garden has two compromising implications. First, the user no longer has access to the most recent data because the garden cannot send messages to the API. The messages will be sent once the connection is resumed, but the latency can be an issue. Secondly, any configuration and control that needs to be sent to the garden won't make it. Both of these issues can be severe in time-sensitive applications. The second channel, between the API and front-end, creates similar, but slightly different issues. In this case the user wont be able to view any data through the application despite the fact that the data would likely be complete and recent. The user will also be unable to send messages to the garden, but in this case they'll have little indication of success or failure.
 
 ## Key Vulnerabilities
 
 Considering the most blatant avenues of attack, the service has a few vulnerabilities that are most critical.
 
+[DG: Not sure what "blatant" means here.]
+
 Authentication and proper session management is absolutely key. Gaining unauthorized access to any of the services, but especially the API, is highly damaging. It is critical that passwords are strong and two-factor authentication is used where possible. Sessions should require sane re-authentication and confirmation.
 
-Network security of the garden is a weakness of the service. No unnecessary services should be running on any of the garden's machines. Only the single machine hosting the gardener container should be network facing. The firewall should have stringent checks and fail closed. Failing closed, as opposed to open, means that in the case of some received packet making it through the machine's firewall rules without a clear decision to accept or deny, then it should alway be denied rather than allowed through.  The goal should ultimately be to harden the machines to the greatest extent possible using all modern best practices.
+Network security of the garden is a weakness of the service. No unnecessary services should be running on any of the garden's machines. Only the single machine hosting the gardener container should be network facing. The firewall should have stringent checks and it should fail closed. Failing closed, as opposed to open, means that in the case of some received packet making it through the machine's firewall rules without a clear decision to accept or deny, then it should always be denied rather than allowed through.  The goal should ultimately be to harden the machines to the greatest extent possible using all modern best practices.
 
 Data received by the API and sent and received within the network should be checked and sanitized. To protect against the situation in which a message is able to bypass the authentication of the front-end service and the identification of the API, the API and garden machines should sanitize it to limit its potential damage.
 
 Likewise, the front-end controls should be checked and sanitized to prevent any unnecessary web vulnerabilities, like cross-site scripting or request forgery, to eliminate the tools an attacker has to elevate privileges. These are two instances in which we want to protect against dangerous input, and they are both handled in a very similar way.
 
 First, any input, both created by the user and sent over the network by the API, that is going to be reflected to the web applications view, used to set configuration, or invoke manual action needs to be treated as potentially dangerous. Reflected text in the web application is considered dangerous if it is rendered as valid HTML. For this reason, user input is either sanitized or escaped. This is another example of how Angular provided a lot of value right out of the box.
+
+[DG: How? What did Angular provide in this case?]
 
 Sanitization of user input includes removing potentially dangerous tokens entirely. This is commonly done using regular expressions by looking for strings that match a particular pattern -- in this scenario we would try to identify and remove strings that begin with `<` and end with `>` because this is a pattern followed by all HTML tags. Angular sanitizes items by default if they are assigned in the HTML using the `ng-bind-html` and can be sanitized manually by using the `$sanitize` service.
 
@@ -89,6 +103,8 @@ It is also possible for dangerous input to be sent to the Gardener container as 
 
 It is certain, however, that we can list each possible valid command. For this reason I created a dispatch table including all of the possible commands mapped to their function. Functions are first class objects in Python, so they can be stored in Dictionaries by default and invoked by key. This prevents execution of unwanted code because any command sent to the Gardener container's RPC server is cross-referenced with the dispatch table effectively whitelisting incoming requests. Furthermore, the parameters expected to be passed to these functions each have defining characteristics that can be checked before the functions execution.
 
+[DG: Some background on RPC and dispatch is in order. Did you do that somewhere?]
+
 Under this system, the Gardener container might receive a request from the API. This request contains a signature proving that it is indeed from the API and has a body that contains the following:
 
 ```
@@ -105,13 +121,17 @@ This messages is split and expected to be in the form `method parameter`. The di
 
 In turn this method is called with the passed parameter. This flow means that, barring a serious breach, a validated message is sent from the API containing a method known to exist and be available for remote execution.
 
+[DG: What is a "serious breach"?]
+
 ## Security Mechanisms
 
-To prevent as many of the previously stated vulnerabilities as possible I've put in place security mechanisms to keep Victor as safe while remaining extensible, powerful, and user friendly.
+To prevent as many of the previously stated vulnerabilities as possible I've put in place security mechanisms to keep Victor safe while remaining extensible, powerful, and user friendly.
 
 ### Physical
 
 Physical security is ultimately a deterrent rather than a means to an end. It's possible to interface with the Raspberry Pi machines over both ethernet and usb, so protecting access to these ports is important. Furthermore, the filesystem is contained on a single SD card, so access to the card is a means of gaining access to potentially damaging information.
+
+[DG: Isn't a deterrent a means to an end?]
 
 In total there are three primary implemented means of protecting the devices from an attacker with physical access keeping appropriate hardware in a secured enclosure, removing unnecessary ports, and securing the SD card.
 
